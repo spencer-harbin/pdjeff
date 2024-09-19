@@ -4,6 +4,7 @@ import pymupdf as pym
 class PdfIndex:
     def __init__(self, local_file_path):
         self.local_file_path = local_file_path
+        self.index = {}
 
     def extract_text_from_pdf(self):
         text = ""
