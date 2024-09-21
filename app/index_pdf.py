@@ -1,20 +1,11 @@
 import glob 
 import pymupdf as pym 
 
-class PdfIndex:
-    def __init__(self, local_file_path):
-        self.local_file_path = local_file_path
-        self.index = {}
-
-    def extract_text_from_pdf(self):
+def extract_text_from_pdf(file_path):
+    with pym.open(file_path) as doc:
         text = ""
-        doc = pym.open(self.local_file_path)
         for page in doc:
             text += page.get_text()
-        
-        doc.close()
 
-        return text
-    
-    def index_pdf_contents(self):
-        pass
+def index_text(json_index):
+    pass 

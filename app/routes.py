@@ -27,23 +27,25 @@ def upload_pdf():
             flash('No file part')
             return redirect(request.url)
         
-        file = request.files['file']
+        # file = request.files['file']
+        files = request.files.getlist('file')
 
-        if file.filename == '':
-            flash('No file selected')
-            return redirect(request.url)
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('download_file', name=filename))
+        for file in files:
+            if file.filename == '':
+                flash('No file selected')
+                return redirect(request.url)
+            
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                return redirect(url_for('download_file', name=filename))
         
     return '''
     <!doctype html>
     <title>Upload new file</title>
     <h1>Upload new file</h1>
     <form method=post enctype=multipart/form-data>
-        <input type=file name=file>
+        <input type=file name=file multiple>
         <input type=submit value=Upload>
     </form>
     '''
