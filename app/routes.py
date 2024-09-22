@@ -1,6 +1,7 @@
 import os
 from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
+import pymupdf as pym
 
 UPLOAD_FOLDER = '/Users/spencer/Documents/email_papers_script/sample_pdfs'
 ALLOWED_EXTENSIONS = {'pdf', 'txt'}
@@ -27,6 +28,8 @@ def upload_pdf():
             flash('No file part')
             return redirect(request.url)
         
+        index_data = {}
+        
         # file = request.files['file']
         files = request.files.getlist('file')
 
@@ -35,10 +38,11 @@ def upload_pdf():
                 flash('No file selected')
                 return redirect(request.url)
             
+
+            
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                return redirect(url_for('download_file', name=filename))
+
         
     return '''
     <!doctype html>
