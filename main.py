@@ -1,34 +1,35 @@
-import os 
 import glob
-import pymupdf as pym 
-import mmh3
+import tkinter as tk
+from tkinter import filedialog
+from create_index import create_index
+
+def get_file_path():
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    # put dialog window on top of other windows
+    root.lift()
+    root.attributes('-topmost', True)
+    root.after(1, lambda: root.focus_force())
+    root.update() 
+
+    file_path = filedialog.askdirectory(mustexist=True)  # Open file dialog
+
+    # close tkinter window 
+    root.destroy()
+    return file_path
+
 
 use_default_or_custom = input('Would you prefer to use the default (d) or custom (c) file path? > ')
 if use_default_or_custom == 'd':
     all_files = glob.glob('/Users/spencer/Documents/email_papers_script/sample_pdfs/*.pdf')
 elif use_default_or_custom == 'c':
-    all_files = input('Enter the full file path. >')
+    print('If a directory selection screen does not appear, check the task bar.')
+    all_files = get_file_path()
 else:
     print('Unrecognized input. Please try again with c or d.')
     exit(0)
 
-index = {}
-for file_path in all_files:
-    doc = pym.open(file_path)
-    file_size = os.stat(file_path).st_size
-    pdf_id = mmh3.hash(str(file_size))
+ind = create_index(all_files)
+print(ind)
 
-    for page in doc:
-        pagenum = page.number
-        text = ''
-        text += page.get_text()
-        text_list = text.split(' ')
-
-        for word in text_list: 
-            if not index.get(word):
-                index[word] = {'pdf_id':pdf_id, 'page_id':[pagenum]}
-            else:
-                index[word]['pdf_id'] = pdf_id
-                if not pagenum in index[word]['page_id']: index[word]['page_id'].append(pagenum)
-
-# print(index)
