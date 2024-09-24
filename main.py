@@ -24,3 +24,5 @@ for page in doc:
             if not pagenum in index[word]['page_id']: index[word]['page_id'].append(pagenum)
 
 print(index)
+
+# I don't want to do this today
