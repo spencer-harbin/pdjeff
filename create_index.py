@@ -2,6 +2,38 @@ import pymupdf as pym
 import os
 import mmh3
 import re
+import sqlite3 
+
+# will create a database if it doesn't already exist
+conn = sqlite3.connect('pdf_index.db')
+cursor = conn.cursor()
+
+# creates tables if they don't exist (again)
+cursor.execute('''CREATE TABLE IF NOT EXISTS pdfs (
+               pdf_id INTEGER PRIMARY KEY, 
+               file_name TEXT, 
+               file_size INTEGER, 
+               last_modified INTEGER
+               )''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS index(
+               word TEXT, 
+               pdf_id INTEGER, 
+               page_num INTEGER, 
+               FOREIGN KEY(pdf_id) REFERENCES pdfs(pdf_id)
+               )''')
+
+# insert pdf metadata into pdfs table
+def insert_pdf(pdf_id, file_name, file_size, last_modified):
+    cursor.execute('''INSERT OR IGNORE INTO pdfs (pdf_id, file_name, file_size, last_modified)
+                    VALUES (?, ?, ?, ?)''', (pdf_id, file_name, file_size, last_modified))
+    conn.commit()
+
+# insert word occurrences into index table
+def insert_index_entry(word, pdf_id, page_num):
+    cursor.execute('''INSERT INTO index (word, pdf_id, page_num)
+                   VALUES (?, ?, ?)''', (word, pdf_id, page_num))
+    conn.commit()
 
 def create_index(all_files):
     # add logic later to check if an index already exists 
@@ -12,6 +44,9 @@ def create_index(all_files):
         pdf_id = mmh3.hash(str(file_size) + str(os.path.getmtime(file_path)))
 
         file_name = file_path.split('/')[-1]
+
+        # insert pdf metadata into pdf table
+        insert_pdf(pdf_id, file_name, file_size, last_modified=os.path.getmtime(file_path))
 
         for page in doc:
             pagenum = page.number
@@ -47,6 +82,8 @@ def create_index(all_files):
                         'page_nums': [pagenum]
                     })
 
+    pipe_dict_into_sqlite(index)
+
     # remove duplicate page_nums
     for word in index:
         for entry in index[word]:
@@ -56,6 +93,16 @@ def create_index(all_files):
         f.write(str(index))
 
     return index
+
+def pipe_dict_into_sqlite(index):
+    for word, entries in index.items():
+        for entry in entries:
+            pdf_id = entry['pdf_id']
+            page_nums = entry['page_nums']
+
+            # insert each page number for the word into index table
+            for page_num in page_nums:
+                insert_index_entry(word, pdf_id, page_num)
 
 def search_index(query, index):
     query = query.lower()
