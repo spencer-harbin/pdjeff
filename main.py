@@ -1,7 +1,7 @@
 import glob
 import tkinter as tk
 from tkinter import filedialog
-from create_index import create_index
+from create_index import create_index, search_index
 
 def get_file_path():
     root = tk.Tk()
@@ -31,5 +31,5 @@ else:
     exit(0)
 
 ind = create_index(all_files)
-print(ind)
 
+search_index('the', ind)
