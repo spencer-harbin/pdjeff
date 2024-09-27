@@ -16,7 +16,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS pdfs (
                last_modified INTEGER
                )''')
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS index(
+cursor.execute('''CREATE TABLE IF NOT EXISTS word_index (
                word TEXT, 
                pdf_id INTEGER, 
                page_num INTEGER, 
@@ -31,7 +31,7 @@ def insert_pdf(pdf_id, file_name, file_size, last_modified):
 
 # insert word occurrences into index table
 def insert_index_entry(word, pdf_id, page_num):
-    cursor.execute('''INSERT INTO index (word, pdf_id, page_num)
+    cursor.execute('''INSERT INTO word_index (word, pdf_id, page_num)
                    VALUES (?, ?, ?)''', (word, pdf_id, page_num))
     conn.commit()
 
@@ -82,12 +82,13 @@ def create_index(all_files):
                         'page_nums': [pagenum]
                     })
 
-    pipe_dict_into_sqlite(index)
 
     # remove duplicate page_nums
     for word in index:
         for entry in index[word]:
             entry['page_nums'] = sorted(list(set(entry['page_nums'])))
+
+    pipe_dict_into_sqlite(index)
 
     with open('output.txt', 'w') as f:
         f.write(str(index))
@@ -117,3 +118,5 @@ def search_index(query, index):
         # print(f'Found "{query}" in file {result["pdf_filepath"]} on pages {result["page_id"]}')
     else:
         print(f'"{query}" was not found in any of the documents. If you have recently added a document, try re-creating the index.')
+
+#
